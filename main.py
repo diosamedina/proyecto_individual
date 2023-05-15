@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 import pandas as pd
 import numpy as np
-import ast
 
 df = pd.read_csv("data_def_movies.csv")
 
@@ -12,14 +11,14 @@ def peliculas_mes(mes):
     '''Determina la cantidad de películas que se estrenaron en el mes dado'''
     
     peliculas_mes = df['id'][df['release_month'] == mes].count()
-    return {'mes': mes, 'cantidad': peliculas_mes}
+    return {'mes': mes, 'cantidad': int(peliculas_mes)}
 
 @app.get('/peliculas_dia/{dia}')
 def peliculas_dia(dia):
     '''Determina la cantidad de películas que se estrenaron en el día dado'''
     
     peliculas_dia = df['id'][df['release_day'] == dia].count()
-    return {'dia': dia, 'cantidad': peliculas_dia}
+    return {'dia': dia, 'cantidad': int(peliculas_dia)}
 
 @app.get('/franquicia/{franquicia}')
 def franquicia(franquicia):
@@ -69,7 +68,7 @@ def retorno(pelicula):
             ganancia += df.iloc[i, 10]
             retorno += df.iloc[i, 20]
             anio = df.iloc[i, 17]
-    return {'pelicula':pelicula, 'inversion': inversion, 'ganacia': ganancia,'retorno': retorno, 'anio': anio}
+    return {'pelicula':pelicula, 'inversion': inversion, 'ganacia': ganancia,'retorno': retorno, 'anio': int(anio)}
 
 # ML
 @app.get('/recomendacion/{titulo}')
