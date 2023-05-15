@@ -27,7 +27,7 @@ def franquicia(franquicia):
     cantidad_peliculas = df['id'][df['belongs_to_collection'] == franquicia].count()
     ganancia_total = np.sum(df['return'][df['belongs_to_collection'] == franquicia])
     ganancia_promedio = np.mean(df['return'][df['belongs_to_collection'] == franquicia])
-    return {'franquicia': franquicia, 'cantidad': cantidad_peliculas, 'ganancia_total': ganancia_total, 'ganancia_promedio': ganancia_promedio}
+    return {'franquicia': franquicia, 'cantidad': int(cantidad_peliculas), 'ganancia_total': ganancia_total, 'ganancia_promedio': ganancia_promedio}
 
 @app.get('/peliculas_pais/{pais}')
 def peliculas_pais(pais):
@@ -38,7 +38,7 @@ def peliculas_pais(pais):
     for i in range(n):
         if pais in df.iloc[i, 8]:
             cantidad_peliculas += 1
-    return {'pais': pais, 'cantidad': cantidad_peliculas}
+    return {'pais': pais, 'cantidad': int(cantidad_peliculas)}
 
 @app.get('/productoras/{productora}')
 def productoras(productora):
@@ -51,7 +51,7 @@ def productoras(productora):
         if productora in df.iloc[i, 7]:
             ganancia_total += df.iloc[i, 20]
             cantidad_peliculas += 1
-    return {'productora': productora, 'ganancia_total': ganancia_total, 'cantidad': cantidad_peliculas}
+    return {'productora': productora, 'ganancia_total': ganancia_total, 'cantidad': int(cantidad_peliculas)}
 
 @app.get('/retorno/{pelicula}')
 def retorno(pelicula):
@@ -88,6 +88,6 @@ def recomendacion(titulo):
         for j in range(n_genero):
             if genero[j] in df.iloc[i, 2]:
                 if df.iloc[i, 15] != titulo and df.iloc[i, 15] not in peliculas_recomendadas:
-                    if df.iloc[i, 6] == popularidad and df.iloc[i, 16] == voto_promedio and df.iloc[i, 17] == anio:
+                    if df.iloc[i, 6] >= popularidad and df.iloc[i, 16] >= voto_promedio and df.iloc[i, 17] == anio:
                         peliculas_recomendadas.append(df.iloc[i, 15])
     return peliculas_recomendadas
