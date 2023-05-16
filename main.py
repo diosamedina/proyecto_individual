@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 import pandas as pd
 import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans
 
 df = pd.read_csv("data_def_movies.csv")
 
@@ -74,20 +76,20 @@ def retorno(pelicula):
 @app.get('/recomendacion/{titulo}')
 def recomendacion(titulo):
     '''Recomienda las películas similares a la película dada'''
-    
-    peliculas_recomendadas = []
-    indice = df[df['title'] == titulo].index[0]
-    popularidad = df.iloc[indice, 6]
-    voto_promedio = df.iloc[indice, 16]
-    anio = df.iloc[indice, 17]
-    genero = df.iloc[indice, 2]
-    n_genero = len(genero)
-    n = df['title'].size
 
-    for i in range(n):
-        for j in range(n_genero):
-            if genero[j] in df.iloc[i, 2]:
-                if df.iloc[i, 15] != titulo and df.iloc[i, 15] not in peliculas_recomendadas:
-                    if df.iloc[i, 6] >= popularidad and df.iloc[i, 16] >= voto_promedio and df.iloc[i, 17] == anio:
-                        peliculas_recomendadas.append(df.iloc[i, 15])
+    num_recommendations=5
+    vectorizer = TfidfVectorizer()  # Crea una matriz TF-IDF a partir de los títulos de las películas
+    tfidf_matrix = vectorizer.fit_transform(df["title"])  # Define un objeto vectorizador
+    kmeans = KMeans(n_clusters=10, random_state=42)  # Ajusta un modelo de clustering (K-Means)
+    kmeans.fit(tfidf_matrix)  # Entrena un modelo de clustering (K-Means)
+    movie_vector = vectorizer.transform([titulo])  # Encuentra el cluster más cercano al título de la película proporcionado
+    cluster_label = kmeans.predict(movie_vector)[0]  # 	Predice el índice de los conglomerados para cada muestra
+    cluster_movies = df[kmeans.labels_ == cluster_label]  # Filtra las películas en el mismo cluster que la película de interés
+    cluster_movies = cluster_movies[cluster_movies["title"] != titulo]  # Excluye la película de interés de las recomendaciones
+
+    # Ordenar las películas por su similitud al título de interés
+    cluster_movies["similitud"] = kmeans.transform(vectorizer.transform(cluster_movies["title"])).sum(axis=1)
+    cluster_movies = cluster_movies.sort_values("similitud", ascending=False).head(num_recommendations)
+
+    peliculas_recomendadas = cluster_movies["title"].tolist()  # Devolver las películas recomendadas
     return peliculas_recomendadas
